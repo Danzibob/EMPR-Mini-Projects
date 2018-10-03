@@ -14,6 +14,7 @@ int allLEDs= (1<<LED1)|(1<<LED2)|(1<<LED3)|(1<<LED4);
 
 // Allocate variables
 int timems = 0;
+char binString[4];
 
 // Function Prototypes
 void delayms(int);
@@ -46,10 +47,10 @@ void task(void)
         int i;
         for(i = 0; i < 16; i++)
         {
-                char outputStr[9];
-                sprintf(outputStr, "%2d %2X \n\r", i, i);
-                write_usb_serial_blocking(outputStr,9);
-                displayNibble(i);
+                char outputStr[13];
+                displayNibble(i); // Updates global binString
+                sprintf(outputStr, "%2d %2X %04s\n\r", i, i, binString);
+                write_usb_serial_blocking(outputStr,13);
                 delayms(1000);
         }
 
@@ -74,14 +75,17 @@ void SysTick_Handler(void)
 void displayNibble(char N)
 {
 	int digit;
-	for(digit = 0; digit < 4; digit++)
+	// Count down the digits, so MSB is first
+	for(digit = 3; digit >= 0; digit--)
 	{
-		if(N & (1 << digit))
+		if(N & (1 << (3-digit)))
 		{
-			GPIO_SetValue(1, LEDs[3-digit]);
+			GPIO_SetValue(1, LEDs[digit]);
+			binString[digit] = '1';
 		} else
 		{
-			GPIO_ClearValue(1, LEDs[3-digit]);
+			GPIO_ClearValue(1, LEDs[digit]);
+			binString[digit] = '0';
 		}
 	}
 }
