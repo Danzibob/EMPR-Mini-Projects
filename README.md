@@ -1,5 +1,7 @@
 # EMPR Mini-Projects
 
+By Danny and David 
+
 ### Project 1
 
 Using Builtin LEDs and the UART (to USB bridge) to output data to a connected PC
