@@ -7,7 +7,8 @@
 
 #include "serial.c"
 
-#define KEYPAD_I2C_ADDRESS   (0x42)
+#define KEYPAD_I2C_ADDRESS   (0x21)
+#define LCD_I2C_ADDRESS      (0x3B)
 #define I2C_SCL_SDA_PORT     (0)
 #define I2C_SDA_PIN          (0)
 #define I2C_SCL_PIN          (1)
@@ -40,31 +41,45 @@ void main (void)
 
 	displayNibble(0x1);
 
-	uint8_t data_out = 0xEF;
+	uint8_t data_out[] = {0x00,0x00};
 	uint8_t data_in = 0x00;
 
+	uint8_t setupBytes[] = {0x00,0x34,0x0c,0x06,0x35,0x04,0x10,0x42,0x9f,0x34,0x02};
+	Status i2c_status;
+	//I2C transmission setup
 	I2C_M_SETUP_Type i2c_m_setup;
+	i2c_m_setup.sl_addr7bit = LCD_I2C_ADDRESS;
+	i2c_m_setup.tx_data = setupBytes;
+	i2c_m_setup.tx_length = sizeof(setupBytes);
+	i2c_m_setup.rx_data = NULL;
+	i2c_m_setup.rx_length = 0;
+	i2c_m_setup.retransmissions_max = 1;
 
-	i2c_m_setup.sl_addr7bit = KEYPAD_I2C_ADDRESS >> 1;
-	i2c_m_setup.tx_data = &data_out;
+	i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
+	displayNibble(0);
+	delayms(1000);
+
+	i2c_m_setup.tx_data = data_out;
 	i2c_m_setup.tx_length = sizeof(data_out);
-	i2c_m_setup.rx_data = &data_in;
-	i2c_m_setup.rx_length = sizeof(data_in);
-	i2c_m_setup.retransmissions_max = 3;
 
-	displayNibble(0x2);
+	data_out[0] = 0x80;
+	data_out[1] = 0x01;
+	i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
+	displayNibble(1);
+	delayms(1000);
 
-	while(1)
-	{
-		Status i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
-		//displayNibble(0x3);
-		uint8_t keypad_row = 0x0F ^ data_in;
-		char outStr[6];
-		sprintf(outStr, "%03d\n\r", keypad_row);
-		write_usb_serial_blocking(outStr,6);
-		displayNibble(keypad_row & 0xF);
-		delayms(100);
-	}
+	data_out[0] = 0x80;
+	data_out[1] = 0x00;
+	i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
+	displayNibble(2);
+	delayms(1000);
+
+	char helloWorld[] = {0x40, 0xC8, 0xE9, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0};
+	i2c_m_setup.tx_data = helloWorld;
+	i2c_m_setup.tx_length = sizeof(helloWorld);
+	i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
+	displayNibble(3);
+	delayms(1000);
 }
 
 void delayms(int ms)
