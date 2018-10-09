@@ -54,17 +54,23 @@ void main (void)
 
 	displayNibble(0x2);
 
-	while(1)
+	int num_devices = 0;
+	int i;
+	for(i=0; i < 1<<7; i++)
 	{
+		i2c_m_setup.sl_addr7bit =  i;
 		Status i2c_status = I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
-		//displayNibble(0x3);
-		uint8_t keypad_row = 0x0F ^ data_in;
-		char outStr[6];
-		sprintf(outStr, "%03d\n\r", keypad_row);
-		write_usb_serial_blocking(outStr,6);
-		displayNibble(keypad_row & 0xF);
-		delayms(100);
+		if(i2c_status != 0)
+		{
+			char outStr[7];
+			sprintf(outStr, "0x%02X, ", i);
+			write_usb_serial_blocking(outStr,7);
+			num_devices++;
+		}
 	}
+	char outStr2[37];
+	sprintf(outStr2, "\n\r%3d devices connected to i2c bus\n\r", num_devices);
+	write_usb_serial_blocking(outStr2,37);
 }
 
 void delayms(int ms)
@@ -121,5 +127,4 @@ void displayNibble(char N)
 			GPIO_ClearValue(1, LEDs[digit]);
 		}
 	}
-	delayms(100);
 }
