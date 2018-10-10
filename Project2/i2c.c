@@ -34,16 +34,16 @@ void setupI2C (void)
 	I2C_Cmd(I2CDEV, ENABLE);
 }
 
-Status sendBytes (char address, uint8_t data[])
+Status sendBytes (char address, uint8_t * data, uint8_t data_len)
 {
 	//I2C transmission config
 	I2C_M_SETUP_Type i2c_m_setup;
 	i2c_m_setup.sl_addr7bit = address;
 	i2c_m_setup.tx_data = data;
-	i2c_m_setup.tx_length = sizeof(data);
+	i2c_m_setup.tx_length = data_len;
 	i2c_m_setup.rx_data = NULL;
 	i2c_m_setup.rx_length = 0;
-	i2c_m_setup.retransmissions_max = 0;
+	i2c_m_setup.retransmissions_max = 3;
 
 	// Transfer data & return status
 	return I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);

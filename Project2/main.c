@@ -36,47 +36,35 @@ void main (void)
 	Status i2c_status;
 
 	uint8_t setupBytes[] = {0x00,0x34,0x0c,0x06,0x35,0x04,0x10,0x42,0x9f,0x34,0x02};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, setupBytes);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, setupBytes, 11);
 	delayms(1000);
 
-	if(i2c_status > 0)
-	{
-		write_usb_serial_blocking("Failed to setup\n\r", 18);
-	} else {
-		write_usb_serial_blocking("Set up display \n\r", 18);
-	}
-
-	uint8_t data_out[2];
+	uint8_t data_out[] = {0x00, 0x00};
 
 	//Clear the display
 	data_out[0] = 0x00;
 	data_out[1] = 0x01;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
 	delayms(1000);
-	if(i2c_status > 0)
-	{
-		write_usb_serial_blocking("Failed to clear\n\r", 18);
-	} else {
-		write_usb_serial_blocking("Cleared display\n\r", 18);
-	}
 
 	data_out[0] = 0x00;
 	data_out[1] = 0x80;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
 	delayms(1000);
-	uint8_t clear[17] = {0x40, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, clear);
+	// Write spaces to screen
+	uint8_t clear[] = {0x40, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0};
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, clear, 17);
 	delayms(1000);
 
 	// Write Instruction reg
 	data_out[0] = 0x00;
 	data_out[1] = 0x80;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
 	delayms(1000);
 
 	// Write message
-	uint8_t helloWorld[6] = {0x40, 0xC8, 0xE5, 0xEC, 0xEC, 0xEF};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, helloWorld);
+	uint8_t helloWorld[] = {0x40, 0xC8, 0xE5, 0xEC, 0xEC, 0xEF};
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, helloWorld, 6);
 	delayms(1000);
 }
 
