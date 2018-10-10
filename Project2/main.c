@@ -16,6 +16,9 @@
 int LEDs[4] = {1<<LED1, 1<<LED2, 1<<LED3, 1<<LED4};
 int allLEDs= (1<<LED1)|(1<<LED2)|(1<<LED3)|(1<<LED4);
 
+#define KEYPAD_I2C_ADDRESS   (0x21)
+#define LCD_I2C_ADDRESS      (0x3B)
+
 void delayms(int);
 void displayNibble(char);
 
@@ -36,6 +39,13 @@ void main (void)
 	i2c_status = sendBytes(LCD_I2C_ADDRESS, setupBytes);
 	delayms(1000);
 
+	if(i2c_status > 0)
+	{
+		write_usb_serial_blocking("Failed to setup\n\r", 18);
+	} else {
+		write_usb_serial_blocking("Set up display \n\r", 18);
+	}
+
 	uint8_t data_out[2];
 
 	//Clear the display
@@ -43,7 +53,12 @@ void main (void)
 	data_out[1] = 0x01;
 	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out);
 	delayms(1000);
-	write_usb_serial_blocking("Cleared display\n\r", 18);
+	if(i2c_status > 0)
+	{
+		write_usb_serial_blocking("Failed to clear\n\r", 18);
+	} else {
+		write_usb_serial_blocking("Cleared display\n\r", 18);
+	}
 
 	data_out[0] = 0x00;
 	data_out[1] = 0x80;

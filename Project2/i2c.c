@@ -5,8 +5,6 @@
 
 #include "i2c.h"
 
-#define KEYPAD_I2C_ADDRESS   (0x21)
-#define LCD_I2C_ADDRESS      (0x3B)
 #define I2C_SCL_SDA_PORT     (0)
 #define I2C_SDA_PIN          (0)
 #define I2C_SCL_PIN          (1)
