@@ -96,5 +96,3 @@ void main (void)
 	}
 
 }
-
-/* There _is_ rollover, but only if you're moving down the keyboard */
