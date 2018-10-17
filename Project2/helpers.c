@@ -12,6 +12,7 @@ int allLEDs= (1<<LED1)|(1<<LED2)|(1<<LED3)|(1<<LED4);
 
 void delayms(int);
 void displayNibble(char);
+int oneHot2Bin(uint8_t);
 
 int timems = 0;
 
@@ -41,4 +42,12 @@ void displayNibble(char N)
 		}
 	}
 	delayms(100);
+}
+
+int oneHot2Bin(uint8_t N){
+	if(N == 0x08) return 3;
+	if(N == 0x04) return 2;
+	if(N == 0x02) return 1;
+	if(N == 0x01) return 0;
+	return -1;
 }
