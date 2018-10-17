@@ -24,6 +24,10 @@ void main (void)
 	LCDSetup();
 	LCDClear();
 
+	// ---=== TASK 1 ===---
+
+	nmap();
+
 	// ---=== TASK 2 ===---
 
 	// Set LCD to wrote on the top line

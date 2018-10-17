@@ -63,3 +63,24 @@ Status readBytes (char address, uint8_t * data, uint8_t data_len)
 	// Transfer data & return status
 	return I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
 }
+
+void nmap (void)
+{
+	int data[2] = {0x00};
+	char outStr[7];
+	int num_devices = 0;
+	int i;
+	for(i = 0; i < (1 << 7); i++)
+	{
+		Status i2c_status = sendBytes(i, data, 2);
+		if(i2c_status != 0)
+		{
+			sprintf(outStr, "0x%02X ", i);
+			write_usb_serial_blocking(outStr,7);
+			num_devices++;
+		}
+	}
+	char outStr2[36];
+	sprintf(outStr2, "\n\r%2d devices connected to i2c bus\n\r", num_devices);
+	write_usb_serial_blocking(outStr2,36);
+}
