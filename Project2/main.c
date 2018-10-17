@@ -19,53 +19,61 @@ int allLEDs= (1<<LED1)|(1<<LED2)|(1<<LED3)|(1<<LED4);
 #define KEYPAD_I2C_ADDRESS   (0x21)
 #define LCD_I2C_ADDRESS      (0x3B)
 
+#define LCD_WAIT_MS          (10)
+
 void delayms(int);
 void displayNibble(char);
+uint8_t * text2LCDBytes(char[], int, uint8_t[]);
+
+void LCDClear(void);
+void LCDTopLine(void);
+void LCDBottomLine(void);
+void LCDSetup(void);
 
 int timems = 0;
+Status i2c_status;
 
 void main (void)
 {
 	// Initialize SysTick interrupts every ms
 	SysTick_Config(SystemCoreClock / 1000);
-	// Initalize serial
+
+	// Initialize stuff
 	serial_init();
-	// Initialize I2C
 	setupI2C();
+	LCDSetup();
+	LCDClear();
 
-	Status i2c_status;
+	// Set LCD to wrote on the top line
+	LCDTopLine();
+	// Array to hold message bytes
+	uint8_t helloWorld[12];
+	// String to be converted
+	char helloString[] = "Hello World";
+	// Populate byte array from string
+	text2LCDBytes(helloString, 12, helloWorld);
+	// Send the bytes to the LCD controller
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, helloWorld, 12);
 
-	uint8_t setupBytes[] = {0x00,0x34,0x0c,0x06,0x35,0x04,0x10,0x42,0x9f,0x34,0x02};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, setupBytes, 11);
-	delayms(1000);
+	delayms(2000);
 
-	uint8_t data_out[] = {0x00, 0x00};
+	// Clear the LCD screen
+	LCDClear();
 
-	//Clear the display
-	data_out[0] = 0x00;
-	data_out[1] = 0x01;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
-	delayms(1000);
+	// Write Hello to the top line
+	LCDTopLine();
+	uint8_t hello[6];
+	char helloStr[] = "Hello";
+	text2LCDBytes(helloStr, 6, hello);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, hello, 6);
 
-	data_out[0] = 0x00;
-	data_out[1] = 0x80;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
-	delayms(1000);
-	// Write spaces to screen
-	uint8_t clear[] = {0x40, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, clear, 17);
-	delayms(1000);
+	// Write World to the bottom line
+	LCDBottomLine();
+	uint8_t world[6];
+	char worldStr[] = "World";
+	text2LCDBytes(worldStr, 6, world);
+	i2c_status = sendBytes(LCD_I2C_ADDRESS, world, 6);
 
-	// Write Instruction reg
-	data_out[0] = 0x00;
-	data_out[1] = 0x80;
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, data_out, 2);
-	delayms(1000);
-
-	// Write message
-	uint8_t helloWorld[] = {0x40, 0xC8, 0xE5, 0xEC, 0xEC, 0xEF};
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, helloWorld, 6);
-	delayms(1000);
 }
 
 void delayms(int ms)
@@ -94,4 +102,62 @@ void displayNibble(char N)
 		}
 	}
 	delayms(100);
+}
+
+uint8_t * text2LCDBytes(char string[], int len, uint8_t out[])
+{
+	out[0] = 0x40;
+	int i;
+	for(i = 0; i < len-1; i++)
+	{
+		// Check if the character is a letter (UPPER or lower)
+		if(('A' <= string[i] && string[i] <= 'Z') || ('a' <= string[i] && string[i] <= 'z'))
+		{
+			out[i+1] = string[i] + 128;
+		} 
+		else 
+		// Check if the character is a space
+		if(string[i] == ' ')
+		{
+			out[i+1] = 0xA0;
+		}
+		else
+		{
+			out[i+1] = string[i];
+		}
+	}
+	return out;
+}
+
+void LCDTopLine(void)
+{
+	uint8_t topLine[] = {0x00, 0x80};
+	sendBytes(LCD_I2C_ADDRESS, topLine, 2);
+	delayms(LCD_WAIT_MS);
+}
+
+void LCDBottomLine(void)
+{
+	uint8_t topLine[] = {0x00, 0xC0};
+	sendBytes(LCD_I2C_ADDRESS, topLine, 2);
+	delayms(LCD_WAIT_MS);
+}
+
+void LCDClear(void)
+{
+	LCDTopLine();
+	delayms(LCD_WAIT_MS);
+	uint8_t clear[] = {0x40, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0};
+	sendBytes(LCD_I2C_ADDRESS, clear, 17);
+	delayms(LCD_WAIT_MS);
+	LCDBottomLine();
+	sendBytes(LCD_I2C_ADDRESS, clear, 17);
+	delayms(LCD_WAIT_MS);
+}
+
+void LCDSetup(void)
+{
+	uint8_t setupBytes[] = {0x00,0x34,0x0c,0x06,0x35,0x04,0x10,0x42,0x9f,0x34,0x02};
+	sendBytes(LCD_I2C_ADDRESS, setupBytes, 11);
+	delayms(200);
 }
