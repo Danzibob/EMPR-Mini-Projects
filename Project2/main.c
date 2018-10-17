@@ -111,16 +111,10 @@ uint8_t * text2LCDBytes(char string[], int len, uint8_t out[])
 	for(i = 0; i < len-1; i++)
 	{
 		// Check if the character is a letter (UPPER or lower)
-		if(('A' <= string[i] && string[i] <= 'Z') || ('a' <= string[i] && string[i] <= 'z'))
+		if((' ' <= string[i] && string[i] <= 'Z') || ('a' <= string[i] && string[i] <= 'z'))
 		{
 			out[i+1] = string[i] + 128;
 		} 
-		else 
-		// Check if the character is a space
-		if(string[i] == ' ')
-		{
-			out[i+1] = 0xA0;
-		}
 		else
 		{
 			out[i+1] = string[i];
