@@ -78,3 +78,6 @@ install:
 	cp $(EXECNAME).bin /media/$(USER)/MBED &
 	sync
 	@echo "Now press the reset button on all MBED file systems"
+
+make: clean all install
+	

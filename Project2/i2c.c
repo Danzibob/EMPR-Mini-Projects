@@ -66,8 +66,8 @@ Status readBytes (char address, uint8_t * data, uint8_t data_len)
 
 void nmap (void)
 {
-	int data[2] = {0x00};
-	char outStr[7];
+	uint8_t data[2] = {0x00};
+	char outStr[6];
 	int num_devices = 0;
 	int i;
 	for(i = 0; i < (1 << 7); i++)
@@ -76,7 +76,7 @@ void nmap (void)
 		if(i2c_status != 0)
 		{
 			sprintf(outStr, "0x%02X ", i);
-			write_usb_serial_blocking(outStr,7);
+			write_usb_serial_blocking(outStr,6);
 			num_devices++;
 		}
 	}
