@@ -43,7 +43,22 @@ Status sendBytes (char address, uint8_t * data, uint8_t data_len)
 	i2c_m_setup.tx_length = data_len;
 	i2c_m_setup.rx_data = NULL;
 	i2c_m_setup.rx_length = 0;
-	i2c_m_setup.retransmissions_max = 3;
+	i2c_m_setup.retransmissions_max = 0;
+
+	// Transfer data & return status
+	return I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
+}
+
+Status readBytes (char address, uint8_t * data, uint8_t data_len)
+{
+	//I2C transmission config
+	I2C_M_SETUP_Type i2c_m_setup;
+	i2c_m_setup.sl_addr7bit = address;
+	i2c_m_setup.tx_data = NULL;
+	i2c_m_setup.tx_length = 0;
+	i2c_m_setup.rx_data = data;
+	i2c_m_setup.rx_length = data_len;
+	i2c_m_setup.retransmissions_max = 0;
 
 	// Transfer data & return status
 	return I2C_MasterTransferData(I2CDEV, &i2c_m_setup, I2C_TRANSFER_POLLING);
