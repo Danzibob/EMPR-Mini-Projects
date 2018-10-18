@@ -4,6 +4,7 @@
 #include "lpc17xx_i2c.h"
 #include "lpc17xx_gpio.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "serial.c"
 #include "i2c.c"
@@ -14,87 +15,116 @@ Status i2c_status;
 
 void main (void)
 {
-	// Initialize SysTick interrupts every ms
-	SysTick_Config(SystemCoreClock / 1000);
-
 	// Initialize stuff
-	GPIO_SetDir(1, 0xFFFFFFFF, 1);
+	SysTick_Config(SystemCoreClock / 1000);
 	serial_init();
 	setupI2C();
 	LCDSetup();
 	LCDClear();
-
-	// ---=== TASK 1 ===---
-
-	nmap();
-
-	// ---=== TASK 2 ===---
-
-	// Set LCD to wrote on the top line
-	LCDTopLine();
-	// Array to hold message bytes
-	uint8_t helloWorld[12];
-	// String to be converted
-	char helloString[] = "Hello World";
-	// Populate byte array from string
-	text2LCDBytes(helloString, 12, helloWorld);
-	// Send the bytes to the LCD controller
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, helloWorld, 12);
-
-	delayms(1000);
-
-	// Clear the LCD screen
-	LCDClear();
-
-	// Write Hello to the top line
-	LCDTopLine();
-	uint8_t hello[6];
-	char helloStr[] = "Hello";
-	text2LCDBytes(helloStr, 6, hello);
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, hello, 6);
-
-	// Write World to the bottom line
-	LCDBottomLine();
-	uint8_t world[6];
-	char worldStr[] = "World";
-	text2LCDBytes(worldStr, 6, world);
-	i2c_status = sendBytes(LCD_I2C_ADDRESS, world, 6);
-
-	delayms(2000);
-
-	LCDClear();
 	LCDTopLine();
 
-	// ---=== TASK 3 ===---
+	// Set up variables
+	char lastKey = ' ';
+	int cursor = 0;
 
-	char lastKey = ' '; // Tracks the last char we entered - ' ' means no key pressed	
-	int cursor = 0;     // Tracks where we are on the display, if we need to switch row 
+	char txt0[16] = "                ";
+	char txt1[16] = "                ";
+	char *txtArgs[] = {txt0, txt1};
+	int currentArg = 0;
+	float arg0, arg1, result;
+	char operator = 0x00;
+
+	// Main program loop
 	while(1)
 	{
-		// Get the character currently pressed
-		char keypressed = getKey();
-		// Check if this is different to the last time we checked
-		if(lastKey != keypressed) 
+		// Read and display characters from keypad
+		char key = getKey();
+		if(lastKey != key) 
 		{
-			lastKey = keypressed;
-			if(keypressed != ' ') // If this is actually a key and not lack thereof
+			lastKey = key;
+			if(key != ' ')
 			{
-				// If we've just (re)started typing, reset LCD
-				if(cursor == 0){
+				// --== Key pressed logic ==--
+
+				// if key is a number, add it to the current operand
+				if(('0' <= key && key <= '9') || key == '*')
+				{
+					// if the argument hit max length, error out
+					if(cursor == 15)
+					{
+						/* ERROR OUT HERE */
+						delayms(2000);
+						/* RESET HERE */
+						continue;
+					}
+
+					if(key == '*') key = '.';
+
+					txtArgs[currentArg][cursor] = key;
+					LCDWriteChar(key);
+					cursor++;
+				} else 
+				// if the key is an operator
+				if('A' <= key && key <= 'D')
+				{
+					if(currentArg == 0)
+					{
+						currentArg = 1;
+						cursor = 0;
+						operator = key;
+
+						// Write arg0 and operator to bottom line
+						LCDClear();
+						LCDBottomLine();
+						uint8_t LCDData[16];
+						text2LCDBytes(txt0, 16, LCDData);
+						sendBytes(LCD_I2C_ADDRESS, LCDData, 16);
+						LCDWriteChar(key);
+						LCDTopLine();
+					}
+				} else 
+				if(key == '#')
+				{
+					arg0 = atof(txt0);
+					arg1 = atof(txt1);
+					// Carry out operation
+					switch (operator){
+						case 'A': // Addition
+							result = arg0 + arg1;
+							break;
+						case 'B': // Subtraction
+							result = arg0 - arg1;
+							break;
+						case 'C': // Multiplication
+							result = arg0 * arg1;
+							break;
+						case 'D': // Division
+							result = arg0 / arg1;
+							break;
+						default:
+							/* ERROR OUT HERE */
+						break;
+					}
+					// Write result to display
 					LCDClear();
+					LCDBottomLine();
+					char textResult[16];
+					memset(textResult, '\0', 16);
+					sprintf(textResult, "%-15.4f", result);
+					uint8_t LCDResult[16];
+					text2LCDBytes(textResult, 16, LCDResult);
+					sendBytes(LCD_I2C_ADDRESS, LCDResult, 16);
+
+					// Set arguments
+					memset(txt0, '\0', 16);
+					memset(txt1, '\0', 16);
+					strcpy(txt0, textResult);
+					currentArg = 0;
+					cursor = 0;
+					// Reset text entry
 					LCDTopLine();
 				}
 
-				// Move cursor and write character
-				cursor++;
-				LCDWriteChar(keypressed);
-
-				// Check if we need to switch lines, and do so
-				if(cursor == 16){
-					LCDBottomLine();
-				} else if (cursor == 32){
-					cursor = 0;
-				}
 			}
 		}
 	}
