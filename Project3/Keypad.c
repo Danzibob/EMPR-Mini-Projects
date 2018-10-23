@@ -11,8 +11,6 @@ char keypadKeys[4][4] = {
 	{'A','3','2','1'}
 };
 
-char operatorMap[4] = {'+','-','x','/'};
-
 Status writeKeypad(int col_num)
 {
 	uint8_t byte[1] = {0xff};

@@ -49,6 +49,10 @@ void main (void)
 				// if key is a number, add it to the current operand
 				if(('0' <= key && key <= '9') || key == '*')
 				{
+					// If we're starting a new calculation
+					if(cursor == 0 && currentArg == 0){
+						LCDClear();
+					}
 					// if the argument hit max length, error out
 					if(cursor == 15)
 					{
@@ -79,7 +83,8 @@ void main (void)
 						uint8_t LCDData[16];
 						text2LCDBytes(txt0, 16, LCDData);
 						sendBytes(LCD_I2C_ADDRESS, LCDData, 16);
-						LCDWriteChar(key);
+						// Convert the letter to an operator
+						LCDWriteChar(operatorMap[key-'A']);
 						LCDTopLine();
 					}
 				} else 
