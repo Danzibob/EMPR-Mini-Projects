@@ -17,10 +17,10 @@ void DACSetup(void)
 	DAC_Init(LPC_DAC);
 }
 
-void DACSet(uint32_t dac_value)
+void DACSet(double voltage)
 {
 	// Update value to DAC
-	DAC_UpdateValue(LPC_DAC, dac_value);
+	DAC_UpdateValue(LPC_DAC, DACVoltageToValue(voltage));
 }
 
 void DACSineWave(double Period, double Amplitude, double time)
@@ -28,9 +28,22 @@ void DACSineWave(double Period, double Amplitude, double time)
 	uint32_t ticks = 0;
 	while(ticks < time){
 		double xScaled = (ticks/Period) * (2*PI);
-		double y = (sin(xScaled) + 1) * (Amplitude/1.667) * 512;
-		DACSet((int)y);
+		double y = (sin(xScaled) + 1) * Amplitude;
+		DACSet(y);
 		ticks++;
 		waitForTick();
 	}
+}
+
+int DACVoltageToValue(double V)
+{
+	int val = V / 1.667 * 512;
+	if(val < 0)
+	{
+		val = 0;
+	} else if (val > 1023)
+	{
+		val = 1023;
+	}
+	return val;
 }

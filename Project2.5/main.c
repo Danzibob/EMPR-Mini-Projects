@@ -52,6 +52,7 @@ void main (void)
 					// If we're starting a new calculation
 					if(cursor == 0 && currentArg == 0){
 						LCDClear();
+						LCDTopLine();
 					}
 					// if the argument hit max length, error out
 					if(cursor == 15)

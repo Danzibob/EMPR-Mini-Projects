@@ -1,3 +1,4 @@
 void DACSetup(void);
-void DACSet(uint32_t);
+void DACSet(double);
 void DACSineWave(double, double, double);
+int DACVoltageToValue(double);

@@ -5,6 +5,7 @@
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_adc.h"
 #include "lpc17xx_dac.h"
+#include "lpc17xx_pwm.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include "Keypad.c"
 #include "adc.c"
 #include "dac.c"
+#include "pwm.c"
 
 Status i2c_status;
 
@@ -30,13 +32,10 @@ void main (void)
 	setupI2C();
 	LCDSetup();
 	LCDClear();
-
-	double x = 0;
-
-	// Do Stuff
 	ADCSetup();
+	DACSetup();
 
-	delayms(20);
+	// ---=== TASK 1 ===---
 
 	// while(1)
 	// {
@@ -47,10 +46,22 @@ void main (void)
 	// 	delayms(10);
 	// }
 
-	DACSetup();
 
-	while(1)
-	{
-		DACSineWave(randDouble(1000),randDouble(1.5), 2000);
-	}
+	// ---=== TASK 2 ===---
+
+	// while(1)
+	// {
+	// 	DACSineWave(randDouble(1000),randDouble(1.5), 10000);
+	// }
+
+
+	// ---=== TASK 3 ===---
+	// while(1)
+	// {
+	// 	double Vin = ADCRead();
+	// 	DACSet(Vin);
+	// }
+
+	// ---=== TASK 4 ===---
+	initPWM(1, 0, 256);
 }

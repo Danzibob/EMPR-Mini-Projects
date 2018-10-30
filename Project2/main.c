@@ -28,6 +28,8 @@ void main (void)
 
 	nmap();
 
+	delayms(1000);
+
 	// ---=== TASK 2 ===---
 
 	// Set LCD to wrote on the top line
