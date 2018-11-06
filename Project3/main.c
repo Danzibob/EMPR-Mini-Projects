@@ -54,7 +54,6 @@ void main (void)
 	// 	DACSineWave(randDouble(1000),randDouble(1.5), 10000);
 	// }
 
-
 	// ---=== TASK 3 ===---
 	// while(1)
 	// {
@@ -63,5 +62,7 @@ void main (void)
 	// }
 
 	// ---=== TASK 4 ===---
-	initPWM(1, 0, 256);
+	PWMSetup(25, 1000);
+	PWMEnableChannel(1, SINGLE_EDGE);
+	PWMStart(1, 333);
 }
