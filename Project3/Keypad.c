@@ -3,6 +3,7 @@
 uint8_t readKeypad(void);
 char getKey(void);
 Status writeKeypad(int col_num);
+void resetInterrupt(void);
 
 char keypadKeys[4][4] = {
 	{'D','#','0','*'},
@@ -47,4 +48,10 @@ char getKey(void)
 	}
 	// ' ' indicates no key was found to be pressed
 	return ' ';
+}
+
+void resetInterrupt()
+{
+	uint8_t byte[1] = {0xf0};
+	sendBytes(KEYPAD_I2C_ADDRESS, byte, 1);
 }

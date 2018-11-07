@@ -9,12 +9,14 @@
 #define LED4 23
 int LEDs[4] = {1<<LED1, 1<<LED2, 1<<LED3, 1<<LED4};
 int allLEDs= (1<<LED1)|(1<<LED2)|(1<<LED3)|(1<<LED4);
+int EVERY_N = 0;
 
 void delayms(int);
 void displayNibble(char);
 int oneHot2Bin(uint8_t);
 void waitForTick(void);
 double randDouble(double max);
+void Every_N(void);
 
 int timems = 0;
 
@@ -33,6 +35,10 @@ void waitForTick()
 void SysTick_Handler(void)
 {
 	timems++;
+	if(EVERY_N != 0 && timems % EVERY_N == 0)
+	{
+		Every_N();
+	}
 }
 
 void displayNibble(char N)
