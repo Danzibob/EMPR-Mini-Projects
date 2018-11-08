@@ -19,96 +19,127 @@
 #include "dac.c"
 #include "pwm.c"
 
-#define GPIO_
-
 Status i2c_status;
 int dutyCycle;
+
+int INTTriggered = 0;
 
 void EINT3_IRQHandler(void)
 {
 	// Clear the interrupt on the pin
-	LPC_GPIOINT->IO0IntClr = (1 << 9);
-	// Do stuff
-	resetInterrupt();
-	// Blinky Blink
-	if (LPC_GPIO1->FIOPIN & (1 << 18))
-    {
-        LPC_GPIO1->FIOCLR |= (1 << 18);
-    }
-    else
-    {
-        LPC_GPIO1->FIOSET |= (1 << 18);
-    }
+	LPC_GPIOINT->IO0IntClr = (1 << 5);
+	LPC_SC->EXTINT = (1 << 3);
+	// Debounce 100ms
+	if(timems < 1000){
+		write_usb_serial_blocking(":sadboi:\n\r",10);
+		return;
+	}
+	timems = 0;
+	write_usb_serial_blocking("TRIGGERED\n\r",11);
+	INTTriggered = 1;
 }
 
 void main (void)
 {
-	// // Initialize SysTick interrupts every ms
-	// SysTick_Config(SystemCoreClock / 1000);
+	SystemInit();
+	// Initialize SysTick interrupts every ms
+	SysTick_Config(SystemCoreClock / 1000);
 
-	// // Initialize stuff
-	// GPIO_SetDir(2, 0xFFFFFFFF, 1);
-	// serial_init();
-	// setupI2C();
-	// LCDSetup();
-	// LCDClear();
-	// ADCSetup();
-	// DACSetup();
+	// Initialize stuff
+	GPIO_SetDir(2, 0xFFFFFFFF, 1);
+	serial_init();
+	setupI2C();
+	LCDSetup();
+	LCDClear();
+	ADCSetup();
+	DACSetup();
 
-	// Set LED1 as an output
-	LPC_GPIO1->FIODIR |= (1 << 21);
+	write_usb_serial_blocking("\n\r--START--\n\r",13);
 
-	// Set up keypad interrupts
+	// Set P0.9 as GPIO input
+	LPC_PINCON->PINSEL0 &= ~(0x11 << 10);
+	LPC_GPIO0->FIODIR &= ~(1 << 5);
 
-	// Set P0.9 as input
-	LPC_GPIO0->FIODIR &= ~(1 << 9);
-	// Enable interrupt on pin 0.9
-	LPC_GPIOINT->IO0IntEnF |= (1 << 9);
+	// Clear interrupts
+	LPC_GPIOINT->IO0IntClr = (1 << 5);
+	LPC_SC->EXTINT = (1 << 3);
+	// Enable falling edge interrupt on P0.9
+	LPC_GPIOINT->IO0IntEnF |= (1 << 5);
+
 	// Enable GPIO interrupts
 	NVIC_EnableIRQ(EINT3_IRQn);
 	// Enable interrupts globally
 	__enable_irq();
-	// Reset the keypad's internal interrupts
-	resetInterrupt();
 
+	while(1)
+	{
+		int i;
+		for(i = 0; i < 1000; i++){
+			waitForTick();
+		}
+		if(INTTriggered)
+		{
+			INTTriggered = 0;
+			break;
+		}
+	}
 
 	// ---=== TASK 1 ===---
-
+	// write_usb_serial_blocking("TASK 1\n\r",8);
 	// while(1)
 	// {
 	// 	double val = ADCRead();
-	// 	char output[17];
+	// 	char output[16];
 	// 	sprintf(output, "ADC0: %8.4f\n\r", val);
-	// 	write_usb_serial_blocking(output,17);
+	// 	write_usb_serial_blocking(output,16);
+
+	// 	if(INTTriggered)
+	// 	{
+	// 		INTTriggered = 0;
+	// 		break;
+	// 	}
+
 	// 	delayms(10);
 	// }
 
 
 	// ---=== TASK 2 ===---
-
-	// while(1)
-	// {
-	// 	DACSineWave(randDouble(1000),randDouble(1.5), 10000);
-	// }
+	write_usb_serial_blocking("TASK 2\n\r",8);
+	while(1)
+	{
+		DACSineWave(randDouble(1000),randDouble(1.5), 10000, &INTTriggered);
+		if(INTTriggered)
+		{
+			INTTriggered = 0;
+			break;
+		}
+	}
 
 	// ---=== TASK 3 ===---
-	// while(1)
-	// {
-	// 	double Vin = ADCRead();
-	// 	DACSet(Vin);
-	// }
+	write_usb_serial_blocking("TASK 3\n\r",8);
+	while(1)
+	{
+		double Vin = ADCRead();
+		DACSet(Vin);
+		if(INTTriggered)
+		{
+			INTTriggered = 0;
+			break;
+		}
+	}
 
 	// ---=== TASK 4 ===---
-	// PWMSetup(25, 100);
-	// // Enable channel 1 in single edge mode
-	// PWMEnableChannel(1, SINGLE_EDGE);
+	write_usb_serial_blocking("TASK 4\n\r",8);
+	PWMSetup(25, 100);
+	// Enable channel 1 in single edge mode
+	PWMEnableChannel(1, SINGLE_EDGE);
 
-	// // Set the function Every_N to be called every 50 ms
-	// EVERY_N = 50;
-	// // Wait until the 5 cycles are done
-	// while(dutyCycle < 500){;}
-	// // Stop the function call
-	// EVERY_N = 0;
+	// Set the function Every_N to be called every 50 ms
+	EVERY_N = 50;
+	// Wait until the 5 cycles are done
+	while(dutyCycle < 500){;}
+	// Stop the function call
+	EVERY_N = 0;
 }
 
 void Every_N()

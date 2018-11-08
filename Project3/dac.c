@@ -23,7 +23,7 @@ void DACSet(double voltage)
 	DAC_UpdateValue(LPC_DAC, DACVoltageToValue(voltage));
 }
 
-void DACSineWave(double Period, double Amplitude, double time)
+void DACSineWave(double Period, double Amplitude, double time, int *INTT)
 {
 	uint32_t ticks = 0;
 	while(ticks < time){
@@ -32,6 +32,7 @@ void DACSineWave(double Period, double Amplitude, double time)
 		DACSet(y);
 		ticks++;
 		waitForTick();
+		if(*INTT == 1) break;
 	}
 }
 
