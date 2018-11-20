@@ -29,9 +29,9 @@ void EINT3_IRQHandler(void)
 	// Clear the interrupt on the pin
 	LPC_GPIOINT->IO0IntClr = (1 << 5);
 	LPC_SC->EXTINT = (1 << 3);
-	// Debounce 100ms
+	// Debounce 1000ms
 	if(timems < 1000){
-		write_usb_serial_blocking(":sadboi:\n\r",10);
+		write_usb_serial_blocking("Debouncing...\n\r",15);
 		return;
 	}
 	timems = 0;
@@ -54,16 +54,19 @@ void main (void)
 	ADCSetup();
 	DACSetup();
 
+	resetInterrupt();
+
 	write_usb_serial_blocking("\n\r--START--\n\r",13);
 
-	// Set P0.9 as GPIO input
-	LPC_PINCON->PINSEL0 &= ~(0x11 << 10);
+	// Set P0.5 as GPIO input
+	//LPC_PINCON->PINSEL0 &= ~(0x11 << 10);
 	LPC_GPIO0->FIODIR &= ~(1 << 5);
 
 	// Clear interrupts
 	LPC_GPIOINT->IO0IntClr = (1 << 5);
 	LPC_SC->EXTINT = (1 << 3);
-	// Enable falling edge interrupt on P0.9
+
+	// Enable falling edge interrupt on P0.5
 	LPC_GPIOINT->IO0IntEnF |= (1 << 5);
 
 	// Enable GPIO interrupts

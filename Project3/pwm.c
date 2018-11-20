@@ -3,10 +3,8 @@
 
 void PWMSetup(int resolution, int period)
 {
-	// Enable PWM
-	LPC_PWM1->TCR = 0x08;
-
-	// This has to be 2 for some reason
+	
+	// Sets match control to reset
 	LPC_PWM1->MCR = 2;
 
 	// Set us resolution (24 -> 1us)

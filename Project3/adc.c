@@ -20,6 +20,7 @@ void ADCSetup(void)
 
 	// Enable the channel
 	ADC_ChannelCmd(LPC_ADC, 0, ENABLE);
+	// Allows for repeated conversions
 	ADC_BurstCmd(LPC_ADC,ENABLE);
 }
 
